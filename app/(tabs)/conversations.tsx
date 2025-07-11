@@ -5,11 +5,11 @@ import { ThemedView } from '@/components/ThemedView';
 import { useAppContext } from '@/context/AppSettingsContext';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Link } from 'expo-router';
+
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function ConversationsScreen() {
-  const { conversations, selectedConversationId, selectConversation, removeConversation, addConversation } = useAppContext();
+  const { conversations, selectedConversationId, selectConversation, removeConversation } = useAppContext();
   const colorScheme = useColorScheme();
 
   const renderItem = ({ item }: { item: any }) => (
@@ -17,21 +17,24 @@ export default function ConversationsScreen() {
       style={[
         styles.conversationItem,
         item.id === selectedConversationId && styles.selectedConversationItem,
-        { backgroundColor: item.id === selectedConversationId ? Colors[colorScheme].tint : Colors[colorScheme].background }
+        { backgroundColor: item.id === selectedConversationId ? Colors[colorScheme].tint : Colors[colorScheme].background,
+          borderColor: Colors[colorScheme].tint,
+          borderWidth: item.id === selectedConversationId ? 2 : 0
+        }
       ]}
       onPress={() => selectConversation(item.id)}
     >
       <ThemedText
         style={[
           styles.conversationTitle,
-          { color: item.id === selectedConversationId ? '#fff' : Colors[colorScheme].text }
+          { color: item.id === selectedConversationId ? Colors[colorScheme].selectedText : Colors[colorScheme].text }
         ]}
         numberOfLines={1}
       >
         {item.messages.length > 0 ? item.messages[0].text : `New Conversation (${item.id.substring(0, 4)})`}
       </ThemedText>
       <TouchableOpacity onPress={() => confirmDelete(item.id)}>
-        <IconSymbol name="trash.fill" size={20} color={item.id === selectedConversationId ? '#fff' : Colors[colorScheme].icon} />
+        <IconSymbol name="trash.fill" size={20} color={item.id === selectedConversationId ? Colors[colorScheme].selectedText : Colors[colorScheme].icon} />
       </TouchableOpacity>
     </TouchableOpacity>
   );

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TextInput, Button, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
+import { StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { webSocketService } from '../../services/WebSocketService';
 import { ThemedText } from '@/components/ThemedText';
@@ -8,16 +8,58 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import * as FileSystem from 'expo-file-system';
 import { useAppContext } from '@/context/AppSettingsContext';
-import { v4 as uuidv4 } from 'uuid';
+import { generateUuid } from '@/utils/generateUuid';
 
 export default function HomeScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [htmlContent, setHtmlContent] = useState('');
   const [localFileBaseUrl, setLocalFileBaseUrl] = useState('');
-  const { selectedPage, selectedConversationId, conversations, updateConversationMessages, updateConversationHtml, serverUrl } = useAppContext();
+  const { selectedConversationId, conversations, updateConversationMessages, updateConversationHtml, serverUrl } = useAppContext();
 
   const currentConversation = conversations.find(conv => conv.id === selectedConversationId);
+
+  // Use refs to hold the latest values of selectedConversationId and localFileBaseUrl
+  const selectedConversationIdRef = useRef(selectedConversationId);
+  const localFileBaseUrlRef = useRef(localFileBaseUrl);
+  const updateConversationMessagesRef = useRef(updateConversationMessages);
+  const updateConversationHtmlRef = useRef(updateConversationHtml);
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId;
+    localFileBaseUrlRef.current = localFileBaseUrl;
+    updateConversationMessagesRef.current = updateConversationMessages;
+    updateConversationHtmlRef.current = updateConversationHtml;
+  }, [selectedConversationId, localFileBaseUrl, updateConversationMessages, updateConversationHtml]);
+
+
+  useEffect(() => {
+    webSocketService.connect(serverUrl, selectedConversationId || '');
+
+    // Set handlers using the refs to get the latest values
+    webSocketService.setMessageHandler((message) => {
+      const currentConvId = selectedConversationIdRef.current;
+      const updateMsgs = updateConversationMessagesRef.current;
+      if (currentConvId) {
+        updateMsgs(currentConvId, { id: generateUuid(), text: JSON.stringify(message), isUser: false });
+      }
+    });
+
+    webSocketService.setHtmlHandler((html) => {
+      const currentConvId = selectedConversationIdRef.current;
+      const updateHtml = updateConversationHtmlRef.current;
+      const currentBaseUrl = localFileBaseUrlRef.current;
+      if (currentConvId) {
+        updateHtml(currentConvId, html, currentBaseUrl);
+      }
+    });
+
+    return () => {
+      webSocketService.close();
+      webSocketService.setMessageHandler(null); // Clear handlers on unmount
+      webSocketService.setHtmlHandler(null); // Clear handlers on unmount
+    };
+  }, [serverUrl, selectedConversationId]); // Dependencies are only serverUrl and selectedConversationId
 
   useEffect(() => {
     if (currentConversation) {
@@ -29,28 +71,8 @@ export default function HomeScreen() {
       setHtmlContent('');
       setLocalFileBaseUrl('');
     }
-  }, [selectedConversationId, currentConversation]);
+  }, [currentConversation]); // This useEffect updates local state based on currentConversation
 
-  useEffect(() => {
-    webSocketService.connect(serverUrl, selectedConversationId || '');
-
-    webSocketService.onMessage((message) => {
-      if (selectedConversationId) {
-        updateConversationMessages(selectedConversationId, { id: uuidv4(), text: JSON.stringify(message), isUser: false });
-      }
-    });
-
-    webSocketService.onHtml((html) => {
-      if (selectedConversationId) {
-        updateConversationHtml(selectedConversationId, html, localFileBaseUrl);
-      }
-    });
-
-    return () => {
-      webSocketService.close();
-    };
-  }, [serverUrl, selectedConversationId, localFileBaseUrl, updateConversationMessages, updateConversationHtml]);
-  
 
   useEffect(() => {
     const loadHtmlContent = async () => {
@@ -87,11 +109,11 @@ export default function HomeScreen() {
     };
 
     loadHtmlContent();
-  }, [currentConversation?.selectedPage]);
+  }, [currentConversation, updateConversationHtml]);
 
   const sendMessage = () => {
     if (inputMessage.trim() && selectedConversationId) {
-      updateConversationMessages(selectedConversationId, { id: uuidv4(), text: inputMessage, isUser: true });
+      updateConversationMessages(selectedConversationId, { id: generateUuid(), text: inputMessage, isUser: true });
       webSocketService.sendMessage(inputMessage);
       setInputMessage('');
     }
@@ -133,15 +155,19 @@ export default function HomeScreen() {
               {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: isDarkMode ? '#555' : '#ccc',
+                borderColor: isDarkMode ? Colors[colorScheme].tint : Colors[colorScheme].icon,
               },
             ]}
             value={inputMessage}
             onChangeText={setInputMessage}
             placeholder="Type your message..."
-            placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
+            placeholderTextColor={isDarkMode ? Colors[colorScheme].icon : Colors[colorScheme].tabIconDefault}
           />
-          <Button title="Send" onPress={sendMessage} color={Colors[colorScheme].tint} />
+          <TouchableOpacity onPress={sendMessage}>
+            <ThemedView isGradient={true} style={styles.sendButton}>
+              <ThemedText style={styles.sendButtonText}>Send</ThemedText>
+            </ThemedView>
+          </TouchableOpacity>
         </ThemedView>
       </KeyboardAvoidingView>
       <ThemedView style={styles.htmlPreviewContainer}>
@@ -206,7 +232,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#eee',
     paddingTop: 10,
     paddingHorizontal: 10,
-    backgroundColor: Colors.light.background, // Use background color for input area
+    backgroundColor: 'transparent', // Use gradient background from ThemedView
   },
   input: {
     flex: 1,
@@ -233,6 +259,17 @@ const styles = StyleSheet.create({
   noHtmlText: {
     textAlign: 'center',
     marginTop: 20,
-    color: Colors.light.text,
+  },
+  sendButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

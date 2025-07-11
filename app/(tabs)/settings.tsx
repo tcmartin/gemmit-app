@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Button, Platform, TextInput } from 'react-native';
+import { StyleSheet, Button, Platform, TextInput, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -74,7 +74,11 @@ export default function SettingsScreen() {
         />
       </ThemedView>
 
-      <Button title="Save Settings" onPress={handleSaveSettings} color={Colors[colorScheme].tint} />
+      <TouchableOpacity onPress={handleSaveSettings}>
+        <ThemedView isGradient={true} style={styles.saveButton}>
+          <ThemedText style={styles.saveButtonText}>Save Settings</ThemedText>
+        </ThemedView>
+      </TouchableOpacity>
     </ThemedView>
   );
 }
@@ -88,14 +92,12 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 30,
-    color: Colors.light.text, // Ensure title is visible on gradient
   },
   settingItem: {
     width: '100%',
     marginBottom: 20,
     padding: 15,
     borderRadius: 10,
-    backgroundColor: Colors.light.background, // Use background color for setting item
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -115,6 +117,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
+  saveButton: {
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
 });
-
-

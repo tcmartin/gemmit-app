@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Link } from 'expo-router';
 import React from 'react';
 import { Platform, Pressable } from 'react-native';
 
@@ -8,7 +8,8 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAppContext } from '@/context/AppSettingsContext';
-import { Link } from 'expo-router';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -53,12 +54,20 @@ export default function TabLayout() {
             <Link href="/conversations" asChild>
               <Pressable onPress={addConversation}>
                 {({ pressed }) => (
-                  <IconSymbol
-                    name="plus.circle.fill"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].tint}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
+                  <ThemedView
+                    isGradient={true}
+                    style={{
+                      marginRight: 15,
+                      opacity: pressed ? 0.5 : 1,
+                      paddingVertical: 5,
+                      paddingHorizontal: 10,
+                      borderRadius: 15,
+                    }}
+                  >
+                    <ThemedText style={{ color: Colors[colorScheme ?? 'light'].selectedText, fontSize: 16 }}>
+                      + New Chat
+                    </ThemedText>
+                  </ThemedView>
                 )}
               </Pressable>
             </Link>
