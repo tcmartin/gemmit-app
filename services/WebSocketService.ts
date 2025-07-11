@@ -1,13 +1,13 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateUuid } from '@/utils/generateUuid';
 
 class WebSocketService {
   private ws: WebSocket | null = null;
   private conversationId: string;
-  private messageHandlers: ((message: any) => void)[] = [];
-  private htmlHandlers: ((html: string) => void)[] = [];
+  private messageHandler: ((message: any) => void) | null = null; // Change to single handler
+  private htmlHandler: ((html: string) => void) | null = null; // Change to single handler
 
   constructor() {
-    this.conversationId = uuidv4();
+    this.conversationId = generateUuid();
   }
 
   connect(url: string, conversationId: string) {
@@ -27,16 +27,16 @@ class WebSocketService {
         try {
           const parsedData = JSON.parse(message.data);
           if (parsedData.type === 'html') {
-            this.htmlHandlers.forEach(handler => handler(parsedData.content));
+            this.htmlHandler?.(parsedData.content); // Call single handler
           } else {
-            this.messageHandlers.forEach(handler => handler(parsedData));
+            this.messageHandler?.(parsedData); // Call single handler
           }
         } catch (e) {
           // If it's not JSON, treat it as a regular message
-          this.messageHandlers.forEach(handler => handler(message.data));
+          this.messageHandler?.(message.data); // Call single handler
         }
       } else {
-        this.messageHandlers.forEach(handler => handler(message));
+        this.messageHandler?.(message); // Call single handler
       }
     };
 
@@ -57,12 +57,14 @@ class WebSocketService {
     }
   }
 
-  onMessage(handler: (message: any) => void) {
-    this.messageHandlers.push(handler);
+  // Change to set handler
+  setMessageHandler(handler: ((message: any) => void) | null) {
+    this.messageHandler = handler;
   }
 
-  onHtml(handler: (html: string) => void) {
-    this.htmlHandlers.push(handler);
+  // Change to set handler
+  setHtmlHandler(handler: ((html: string) => void) | null) {
+    this.htmlHandler = handler;
   }
 
   close() {

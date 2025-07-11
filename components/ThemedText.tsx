@@ -17,8 +17,8 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
-  const chatUserColor = useThemeColor({ light: Colors.light.chatUserText, dark: Colors.dark.chatUserText }, 'text');
-  const chatAIColor = useThemeColor({ light: Colors.light.chatAIText, dark: Colors.dark.chatAIText }, 'text');
+  const chatUserColor = useThemeColor({ light: Colors.light.chatUserText, dark: Colors.dark.chatUserText }, 'chatUserText');
+  const chatAIColor = useThemeColor({ light: Colors.light.chatAIText, dark: Colors.dark.chatAIText }, 'chatAIText');
 
   let finalColor = color;
   if (type === 'chatUser') {

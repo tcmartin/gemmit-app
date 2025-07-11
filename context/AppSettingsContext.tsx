@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { generateUuid } from '@/utils/generateUuid';
 
 interface Message {
   id: string;
@@ -38,7 +38,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [serverUrl, setServerUrl] = useState('ws://localhost:8000'); // New: Default WebSocket server URL
 
   const addConversation = () => {
-    const newConversationId = uuidv4();
+    const newConversationId = generateUuid();
     const newConversation: Conversation = {
       id: newConversationId,
       messages: [],

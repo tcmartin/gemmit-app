@@ -3,36 +3,38 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#6200EE'; // Deep Purple
+const tintColorDark = '#BB86FC'; // Lighter Purple
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#121212', // Darker text for light mode
+    background: '#F5F5F5', // Light gray background
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
-    gradientStart: '#e0f7fa', // Light blue for gradients
-    gradientEnd: '#b2ebf2',   // Slightly darker blue for gradients
-    chatBubbleUser: '#dcf8c6', // Light green for user chat bubbles
-    chatBubbleAI: '#ffffff',   // White for AI chat bubbles
-    chatUserText: '#000', // Dark text for user messages in light mode
-    chatAIText: '#000', // Dark text for AI messages in light mode
+    gradientStart: '#BB86FC', // Light Purple
+    gradientEnd: '#6200EE',   // Deep Purple
+    chatBubbleUser: '#E0F7FA', // Light Cyan
+    chatBubbleAI: '#FFFFFF',   // White
+    chatUserText: '#121212', // Dark text
+    chatAIText: '#121212', // Dark text
+    selectedText: '#FFFFFF', // White text for selected items
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#E0E0E0', // Light gray text for dark mode
+    background: '#121212', // Dark background
     tint: tintColorDark,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
-    gradientStart: '#263238', // Dark blue-gray for gradients
-    gradientEnd: '#37474f',   // Slightly lighter blue-gray for gradients
-    chatBubbleUser: '#075e54', // Dark green for user chat bubbles
-    chatBubbleAI: '#262d31',   // Dark gray for AI chat bubbles
-    chatUserText: '#fff', // Light text for user messages in dark mode
-    chatAIText: '#fff', // Light text for AI messages in dark mode
+    gradientStart: '#2196F3', // Blue
+    gradientEnd: '#F44336',   // Red
+    chatBubbleUser: '#3F51B5', // Indigo
+    chatBubbleAI: '#424242',   // Dark Gray
+    chatUserText: '#FFFFFF', // White text
+    chatAIText: '#E0E0E0', // Light gray text
+    selectedText: '#FFFFFF', // White text for selected items
   },
 };

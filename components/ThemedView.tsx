@@ -21,6 +21,8 @@ export function ThemedView({ style, lightColor, darkColor, isGradient = false, .
       <LinearGradient
         colors={[Colors[colorScheme].gradientStart, Colors[colorScheme].gradientEnd]}
         style={[{ flex: 1 }, style]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         {...otherProps}
       />
     );
