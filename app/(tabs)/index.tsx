@@ -8,72 +8,57 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import * as FileSystem from 'expo-file-system';
 import { useAppContext } from '@/context/AppSettingsContext';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function HomeScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [htmlContent, setHtmlContent] = useState('');
   const [localFileBaseUrl, setLocalFileBaseUrl] = useState('');
-  const { selectedPage } = useAppContext();
-  
+  const { selectedPage, selectedConversationId, conversations, updateConversationMessages, updateConversationHtml, serverUrl } = useAppContext();
+
+  const currentConversation = conversations.find(conv => conv.id === selectedConversationId);
 
   useEffect(() => {
-    const loadHtmlContent = async () => {
-      let html = '';
-      let baseUrl = '';
-      switch (selectedPage) {
-        case 'focus-group-app':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/focus-group-app/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/focus-group-app/';
-          break;
-        case 'roofer-directory-app':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/roofer-directory-app/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/roofer-directory-app/';
-          break;
-        case 'safari-app':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/safari-app/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/safari-app/';
-          break;
-        case 'tictactoe':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/tictactoe/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/tictactoe/';
-          break;
-        case 'lovable':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/lovable.htm');
-          baseUrl = '/Users/trevormartin/Projects/experiments/'; // lovable.htm is in the root of experiments
-          break;
-        default:
-          html = '';
-          baseUrl = '';
-      }
-      setHtmlContent(html);
-      setLocalFileBaseUrl(baseUrl);
-    };
-
-    loadHtmlContent();
-  }, [selectedPage]);
+    if (currentConversation) {
+      setMessages(currentConversation.messages.map(msg => `${msg.isUser ? 'You' : 'AI'}: ${msg.text}`));
+      setHtmlContent(currentConversation.htmlContent);
+      setLocalFileBaseUrl(currentConversation.localFileBaseUrl);
+    } else {
+      setMessages([]);
+      setHtmlContent('');
+      setLocalFileBaseUrl('');
+    }
+  }, [selectedConversationId, currentConversation]);
 
   useEffect(() => {
-    webSocketService.connect('ws://localhost:8000'); // Replace with your backend WebSocket URL
+    webSocketService.connect(serverUrl, selectedConversationId || '');
 
     webSocketService.onMessage((message) => {
-      setMessages((prevMessages) => [...prevMessages, JSON.stringify(message)]);
+      if (selectedConversationId) {
+        updateConversationMessages(selectedConversationId, { id: uuidv4(), text: JSON.stringify(message), isUser: false });
+      }
     });
 
     webSocketService.onHtml((html) => {
-      setHtmlContent(html);
+      if (selectedConversationId) {
+        updateConversationHtml(selectedConversationId, html, localFileBaseUrl);
+      }
     });
 
     return () => {
       webSocketService.close();
     };
-  }, []);
+  }, [serverUrl, selectedConversationId, localFileBaseUrl, updateConversationMessages, updateConversationHtml]);
+  
 
   useEffect(() => {
     const loadHtmlContent = async () => {
+      if (!currentConversation) return;
+
       let html = '';
       let baseUrl = '';
-      switch (selectedPage) {
+      switch (currentConversation.selectedPage) {
         case 'focus-group-app':
           html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/focus-group-app/index.html');
           baseUrl = '/Users/trevormartin/Projects/experiments/focus-group-app/';
@@ -98,15 +83,15 @@ export default function HomeScreen() {
           html = '';
           baseUrl = '';
       }
-      setHtmlContent(html);
-      setLocalFileBaseUrl(baseUrl);
+      updateConversationHtml(currentConversation.id, html, baseUrl);
     };
 
-    }, [selectedPage]);
+    loadHtmlContent();
+  }, [currentConversation?.selectedPage]);
 
   const sendMessage = () => {
-    if (inputMessage.trim()) {
-      setMessages((prevMessages) => [...prevMessages, `You: ${inputMessage}`]);
+    if (inputMessage.trim() && selectedConversationId) {
+      updateConversationMessages(selectedConversationId, { id: uuidv4(), text: inputMessage, isUser: true });
       webSocketService.sendMessage(inputMessage);
       setInputMessage('');
     }

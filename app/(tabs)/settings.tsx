@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Button, Platform } from 'react-native';
+import { StyleSheet, Button, Platform, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -12,7 +12,7 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const { selectedPage, setSelectedPage } = useAppContext();
+  const { selectedPage, setSelectedPage, serverUrl, setServerUrl } = useAppContext();
 
   const pages = [
     { label: 'Default (No HTML)', value: 'default' },
@@ -56,6 +56,24 @@ export default function SettingsScreen() {
         </Picker>
       </ThemedView>
 
+      <ThemedView style={styles.settingItem}>
+        <ThemedText type="defaultSemiBold">WebSocket Server URL:</ThemedText>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: Colors[colorScheme].background,
+              color: Colors[colorScheme].text,
+              borderColor: isDarkMode ? '#555' : '#ccc',
+            },
+          ]}
+          value={serverUrl}
+          onChangeText={setServerUrl}
+          placeholder="e.g., ws://localhost:8000"
+          placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
+        />
+      </ThemedView>
+
       <Button title="Save Settings" onPress={handleSaveSettings} color={Colors[colorScheme].tint} />
     </ThemedView>
   );
@@ -88,4 +106,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
   },
+  input: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 10,
+    fontSize: 16,
+  },
 });
+
+

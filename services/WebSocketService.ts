@@ -10,7 +10,11 @@ class WebSocketService {
     this.conversationId = uuidv4();
   }
 
-  connect(url: string) {
+  connect(url: string, conversationId: string) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.close();
+    }
+    this.conversationId = conversationId;
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
