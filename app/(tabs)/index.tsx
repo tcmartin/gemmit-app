@@ -153,15 +153,15 @@ export default function HomeScreen() {
             style={[
               styles.input,
               {
-                backgroundColor: Colors[colorScheme].background,
-                color: Colors[colorScheme].text,
-                borderColor: isDarkMode ? Colors[colorScheme].tint : Colors[colorScheme].icon,
+                backgroundColor: Colors[colorScheme ?? 'light'].background,
+                color: Colors[colorScheme ?? 'light'].text,
+                borderColor: isDarkMode ? Colors[colorScheme ?? 'light'].tint : Colors[colorScheme ?? 'light'].icon,
               },
             ]}
             value={inputMessage}
             onChangeText={setInputMessage}
             placeholder="Type your message..."
-            placeholderTextColor={isDarkMode ? Colors[colorScheme].icon : Colors[colorScheme].tabIconDefault}
+            placeholderTextColor={isDarkMode ? Colors[colorScheme ?? 'light'].icon : Colors[colorScheme ?? 'light'].tabIconDefault}
           />
           <TouchableOpacity onPress={sendMessage}>
             <ThemedView isGradient={true} style={styles.sendButton}>
@@ -170,7 +170,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </ThemedView>
       </KeyboardAvoidingView>
-      <HtmlPreview htmlContent={htmlContent} localFileBaseUrl={localFileBaseUrl} />
+      
     </ThemedView>
   );
 }
@@ -240,10 +240,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.light.tint, // Use tint color for contrast
+    backgroundColor: Colors[colorScheme ?? 'light'].sendButtonBackground, // Use send button background color
   },
   sendButtonText: {
-    color: Colors.light.selectedText, // Use selectedText color for contrast
+    color: Colors[colorScheme ?? 'light'].selectedText, // Use selectedText color for contrast
     fontWeight: 'bold',
     fontSize: 16,
   },

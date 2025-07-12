@@ -43,12 +43,12 @@ export default function SettingsScreen() {
           style={[
             styles.picker,
             {
-              backgroundColor: Colors[colorScheme].background,
-              color: Colors[colorScheme].text,
+              backgroundColor: Colors[colorScheme ?? 'light'].background,
+              color: Colors[colorScheme ?? 'light'].text,
             },
           ]}
           itemStyle={{
-            color: Colors[colorScheme].text,
+            color: Colors[colorScheme ?? 'light'].text,
           }}
         >
           {pages.map((page) => (
@@ -63,8 +63,8 @@ export default function SettingsScreen() {
           style={[
             styles.input,
             {
-              backgroundColor: Colors[colorScheme].background,
-              color: Colors[colorScheme].text,
+              backgroundColor: Colors[colorScheme ?? 'light'].background,
+              color: Colors[colorScheme ?? 'light'].text,
               borderColor: isDarkMode ? '#555' : '#ccc',
             },
           ]}
@@ -125,8 +125,16 @@ const styles = StyleSheet.create({
   },
   saveButtonContainer: {
     marginTop: 20,
-    width: '80%', // Make it responsive
-    maxWidth: 300, // Max width for larger screens
+    ...Platform.select({
+      ios: {
+        width: '100%',
+        maxWidth: 300,
+      },
+      default: {
+        width: '80%',
+        maxWidth: 300,
+      },
+    }),
     height: 50,
     borderRadius: 10,
     overflow: 'hidden',
