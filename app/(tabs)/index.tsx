@@ -166,16 +166,21 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={sendMessage}>
             <ThemedView
               isGradient={true}
-              style={[
-                styles.sendButton,
-                { backgroundColor: Colors[colorScheme ?? 'light'].sendButtonBackground },
-              ]}
+              style={{
+                paddingVertical: 10,
+                paddingHorizontal: 15,
+                borderRadius: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: Colors[colorScheme ?? 'light'].sendButtonBackground,
+              }}
             >
               <ThemedText
-                style={[
-                  styles.sendButtonText,
-                  { color: Colors[colorScheme ?? 'light'].selectedText },
-                ]}
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: 16,
+                  color: Colors[colorScheme ?? 'light'].selectedText,
+                }}
               >
                 Send
               </ThemedText>
@@ -246,15 +251,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     color: Colors.light.text,
   },
-  sendButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendButtonText: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  
 });
