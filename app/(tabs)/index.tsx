@@ -173,6 +173,7 @@ export default function HomeScreen() {
     </ThemedView>
   );
 }
+}
 
 const styles = StyleSheet.create({
   container: {

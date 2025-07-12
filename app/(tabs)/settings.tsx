@@ -77,7 +77,7 @@ export default function SettingsScreen() {
 
       <TouchableOpacity onPress={handleSaveSettings} style={styles.saveButtonContainer}>
         <LinearGradient
-          colors={[Colors[colorScheme].gradientStart, Colors[colorScheme].gradientEnd]}
+          colors={[Colors[colorScheme ?? 'light'].gradientStart, Colors[colorScheme ?? 'light'].gradientEnd]}
           style={styles.saveButtonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
