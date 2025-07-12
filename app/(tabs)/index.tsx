@@ -164,8 +164,21 @@ export default function HomeScreen() {
             placeholderTextColor={isDarkMode ? Colors[colorScheme ?? 'light'].icon : Colors[colorScheme ?? 'light'].tabIconDefault}
           />
           <TouchableOpacity onPress={sendMessage}>
-            <ThemedView isGradient={true} style={styles.sendButton}>
-              <ThemedText style={styles.sendButtonText}>Send</ThemedText>
+            <ThemedView
+              isGradient={true}
+              style={[
+                styles.sendButton,
+                { backgroundColor: Colors[colorScheme ?? 'light'].sendButtonBackground },
+              ]}
+            >
+              <ThemedText
+                style={[
+                  styles.sendButtonText,
+                  { color: Colors[colorScheme ?? 'light'].selectedText },
+                ]}
+              >
+                Send
+              </ThemedText>
             </ThemedView>
           </TouchableOpacity>
         </ThemedView>
@@ -240,10 +253,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors[colorScheme ?? 'light'].sendButtonBackground, // Use send button background color
   },
   sendButtonText: {
-    color: Colors[colorScheme ?? 'light'].selectedText, // Use selectedText color for contrast
     fontWeight: 'bold',
     fontSize: 16,
   },
