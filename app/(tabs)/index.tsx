@@ -138,7 +138,7 @@ export default function HomeScreen() {
                 style={[
                   styles.messageBubble,
                   isUser ? styles.userMessage : styles.aiMessage,
-                  { backgroundColor: isUser ? Colors[colorScheme].chatBubbleUser : Colors[colorScheme].chatBubbleAI },
+                  { backgroundColor: isUser ? Colors[colorScheme ?? 'light'].chatBubbleUser : Colors[colorScheme ?? 'light'].chatBubbleAI },
                 ]}
               >
                 <ThemedText style={styles.messageText} type={isUser ? 'chatUser' : 'chatAI'}>
@@ -170,7 +170,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </ThemedView>
       </KeyboardAvoidingView>
-      
     </ThemedView>
   );
 }

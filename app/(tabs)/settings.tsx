@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     ...Platform.select({
       ios: {
-        width: '100%',
+        width: '80%',
         maxWidth: 300,
       },
       default: {

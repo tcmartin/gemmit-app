@@ -38,6 +38,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="html-preview"
+        options={{
+          title: 'HTML Preview',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="safari.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="html-preview"
+        options={{
+          title: 'HTML Preview',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="safari.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',

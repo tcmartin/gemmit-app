@@ -21,6 +21,7 @@ export const Colors = {
     chatUserText: '#121212', // Dark text
     chatAIText: '#121212', // Dark text
     selectedText: '#FFFFFF', // White text for selected items
+    sendButtonBackground: tintColorLight, // Deep Purple for send button
   },
   dark: {
     text: '#E0E0E0', // Light gray text for dark mode
@@ -36,5 +37,22 @@ export const Colors = {
     chatUserText: '#FFFFFF', // White text
     chatAIText: '#E0E0E0', // Light gray text
     selectedText: '#FFFFFF', // White text for selected items
+    sendButtonBackground: '#6200EE', // Deep Purple for send button
+  },
+  dark: {
+    text: '#E0E0E0', // Light gray text for dark mode
+    background: '#121212', // Dark background
+    tint: tintColorDark,
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
+    tabIconSelected: tintColorDark,
+    gradientStart: '#2196F3', // Blue
+    gradientEnd: '#F44336',   // Red
+    chatBubbleUser: '#3F51B5', // Indigo
+    chatBubbleAI: '#424242',   // Dark Gray
+    chatUserText: '#FFFFFF', // White text
+    chatAIText: '#E0E0E0', // Light gray text
+    selectedText: '#FFFFFF', // White text for selected items
+    sendButtonBackground: '#BB86FC', // Lighter Purple for send button
   },
 };
