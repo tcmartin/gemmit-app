@@ -16,9 +16,7 @@ export default function HtmlPreviewScreen() {
   const localFileBaseUrl = currentConversation?.localFileBaseUrl || '';
 
   return (
-    <ThemedView style={styles.container} isGradient={true}>
-        <HtmlPreview htmlContent={htmlContent} localFileBaseUrl={localFileBaseUrl} />
-    </ThemedView>
+    <HtmlPreview htmlContent={htmlContent} localFileBaseUrl={localFileBaseUrl} />
   );
 }
 
