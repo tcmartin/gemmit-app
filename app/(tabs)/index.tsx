@@ -148,13 +148,18 @@ export default function HomeScreen() {
             );
           })}
         </ScrollView>
-        <ThemedView style={[styles.inputContainer, { borderTopColor: Colors[colorScheme ?? 'light'].icon, backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
+        <ThemedView style={[
+          styles.inputContainer,
+          {
+            borderTopColor: Colors[colorScheme ?? 'light'].icon,
+            backgroundColor: Colors[colorScheme ?? 'light'].background,
+          },
+        ]}>
           <TextInput
             style={[
               styles.input,
               {
                 backgroundColor: Colors[colorScheme ?? 'light'].chatBubbleAI,
-                color: Colors[colorScheme ?? 'light'].text,
                 borderColor: Colors[colorScheme ?? 'light'].tint,
               },
             ]}
@@ -162,6 +167,7 @@ export default function HomeScreen() {
             onChangeText={setInputMessage}
             placeholder="Type your message..."
             placeholderTextColor={isDarkMode ? Colors[colorScheme ?? 'light'].icon : Colors[colorScheme ?? 'light'].tabIconDefault}
+            color={Colors[colorScheme ?? 'light'].text}
           />
           <TouchableOpacity onPress={sendMessage}>
             <ThemedView
@@ -246,8 +252,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 10,
     fontSize: 16,
-    backgroundColor: Colors[colorScheme ?? 'light'].background,
-    color: Colors[colorScheme ?? 'light'].text,
   },
   
 });

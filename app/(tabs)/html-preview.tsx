@@ -31,6 +31,8 @@ export default function HtmlPreviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   webView: {
     flex: 1,
@@ -38,6 +40,5 @@ const styles = StyleSheet.create({
   },
   noHtmlText: {
     textAlign: 'center',
-    marginTop: 20,
   },
 });
