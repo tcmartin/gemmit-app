@@ -76,7 +76,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const loadHtmlContent = async () => {
-      if (!currentConversation) return;
+      if (!currentConversation || !currentConversation.selectedPage) return;
 
       let html = '';
       let baseUrl = '';
@@ -109,7 +109,19 @@ export default function HomeScreen() {
     };
 
     loadHtmlContent();
-  }, [currentConversation, updateConversationHtml]);
+  }, [currentConversation?.selectedPage, currentConversation?.id, updateConversationHtml]);
+
+  useEffect(() => {
+    if (currentConversation) {
+      setMessages(currentConversation.messages.map(msg => `${msg.isUser ? 'You' : 'AI'}: ${msg.text}`));
+      setHtmlContent(currentConversation.htmlContent);
+      setLocalFileBaseUrl(currentConversation.localFileBaseUrl);
+    } else {
+      setMessages([]);
+      setHtmlContent('');
+      setLocalFileBaseUrl('');
+    }
+  }, [currentConversation]);
 
   const sendMessage = () => {
     if (inputMessage.trim() && selectedConversationId) {
@@ -127,7 +139,7 @@ export default function HomeScreen() {
       <KeyboardAvoidingView
         style={styles.chatContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <ScrollView contentContainerStyle={styles.messagesContainer}>
           {messages.map((msg, index) => {
@@ -152,7 +164,7 @@ export default function HomeScreen() {
           styles.inputContainer,
           {
             borderTopColor: Colors[colorScheme ?? 'light'].icon,
-            backgroundColor: Colors[colorScheme ?? 'light'].background,
+            backgroundColor: 'transparent',
           },
         ]}>
           <TextInput
@@ -228,11 +240,9 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: Colors.light.chatBubbleUser, // Use user chat bubble color
   },
   aiMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.light.chatBubbleAI, // Use AI chat bubble color
   },
   messageText: {
     fontSize: 16,
