@@ -15,31 +15,21 @@ export function HtmlPreview({ htmlContent, localFileBaseUrl }: HtmlPreviewProps)
   const colorScheme = useColorScheme();
 
   return (
-    <ThemedView style={styles.htmlPreviewContainer}>
-      <ThemedText type="subtitle">HTML Preview</ThemedText>
-      {htmlContent ? (
-        <WebView
-          originWhitelist={['*']}
-          source={{ html: htmlContent, baseUrl: localFileBaseUrl }}
-          style={styles.webView}
-        />
-      ) : (
-        <ThemedText style={styles.noHtmlText}>No HTML content to display yet.</ThemedText>
-      )}
-    </ThemedView>
+    htmlContent ? (
+      <WebView
+        originWhitelist={['*']}
+        source={{ html: htmlContent, baseUrl: localFileBaseUrl }}
+        style={styles.webView}
+      />
+    ) : (
+      <ThemedText style={styles.noHtmlText}>No HTML content to display yet.</ThemedText>
+    )
   );
 }
 
 const styles = StyleSheet.create({
-  htmlPreviewContainer: {
-    flex: 1,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: Colors.light.background, // Use background color for HTML preview
-  },
   webView: {
     flex: 1,
-    marginTop: 10,
     backgroundColor: 'transparent',
   },
   noHtmlText: {
