@@ -2,9 +2,6 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface HtmlPreviewProps {
   htmlContent: string;
@@ -12,7 +9,6 @@ interface HtmlPreviewProps {
 }
 
 export function HtmlPreview({ htmlContent, localFileBaseUrl }: HtmlPreviewProps) {
-  const colorScheme = useColorScheme();
 
   return (
     htmlContent ? (

@@ -1,148 +1,123 @@
-import React, { useState, useEffect, useRef } from 'react'; // Import useRef
-import { StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
-import { webSocketService } from '../../services/WebSocketService';
+// HomeScreen.tsx
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import * as FileSystem from 'expo-file-system';
 import { useAppContext } from '@/context/AppSettingsContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { generateUuid } from '@/utils/generateUuid';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { webSocketService } from '../../services/WebSocketService';
 
+const TAB_BAR_HEIGHT = 50;
+const INPUT_CONTAINER_HEIGHT = 60;
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+  const isWeb = Platform.OS === 'web';
   const [messages, setMessages] = useState<string[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  
-  const { selectedConversationId, conversations, updateConversationMessages, updateConversationHtml, serverUrl } = useAppContext();
 
-  const currentConversation = conversations.find(conv => conv.id === selectedConversationId);
+  const {
+    selectedConversationId,
+    conversations,
+    updateConversationMessages,
+    updateConversationHtml,
+    serverUrl,
+  } = useAppContext();
+  const currentConversation = conversations.find(c => c.id === selectedConversationId);
 
-  // Use refs to hold the latest values of selectedConversationId and localFileBaseUrl
-  const selectedConversationIdRef = useRef(selectedConversationId);
-  const updateConversationMessagesRef = useRef(updateConversationMessages);
-  const updateConversationHtmlRef = useRef(updateConversationHtml);
+  const selectedRef = useRef(selectedConversationId);
+  const updateMsgsRef = useRef(updateConversationMessages);
+  const updateHtmlRef = useRef(updateConversationHtml);
 
   useEffect(() => {
-    selectedConversationIdRef.current = selectedConversationId;
-    updateConversationMessagesRef.current = updateConversationMessages;
-    updateConversationHtmlRef.current = updateConversationHtml;
+    selectedRef.current = selectedConversationId;
+    updateMsgsRef.current = updateConversationMessages;
+    updateHtmlRef.current = updateConversationHtml;
   }, [selectedConversationId, updateConversationMessages, updateConversationHtml]);
-
 
   useEffect(() => {
     webSocketService.connect(serverUrl, selectedConversationId || '');
-
-    // Set handlers using the refs to get the latest values
-    webSocketService.setMessageHandler((message) => {
-      const currentConvId = selectedConversationIdRef.current;
-      const updateMsgs = updateConversationMessagesRef.current;
-      if (currentConvId) {
-        updateMsgs(currentConvId, { id: generateUuid(), text: JSON.stringify(message), isUser: false });
-      }
+    webSocketService.setMessageHandler(msg => {
+      const id = selectedRef.current;
+      if (id) updateMsgsRef.current(id, { id: generateUuid(), text: JSON.stringify(msg), isUser: false });
     });
-
-    webSocketService.setHtmlHandler((html) => {
-      const currentConvId = selectedConversationIdRef.current;
-      const updateHtml = updateConversationHtmlRef.current;
-      if (currentConvId) {
-        updateHtml(currentConvId, html, ''); // Removed baseUrl
-      }
+    webSocketService.setHtmlHandler(html => {
+      const id = selectedRef.current;
+      if (id) updateHtmlRef.current(id, html, '');
     });
-
     return () => {
       webSocketService.close();
-      webSocketService.setMessageHandler(null); // Clear handlers on unmount
-      webSocketService.setHtmlHandler(null); // Clear handlers on unmount
+      webSocketService.setMessageHandler(null);
+      webSocketService.setHtmlHandler(null);
     };
-  }, [serverUrl, selectedConversationId]); // Dependencies are only serverUrl and selectedConversationId
-
-  const inputRef = useRef<TextInput>(null);
+  }, [serverUrl, selectedConversationId]);
 
   useEffect(() => {
     if (currentConversation) {
-      setMessages(currentConversation.messages.map(msg => `${msg.isUser ? 'You' : 'AI'}: ${msg.text}`));
-    } else {
-      setMessages([]);
-    }
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [currentConversation, setMessages]);
-
-
-  useEffect(() => {
-    const loadHtmlContent = async () => {
-      if (!currentConversation || !currentConversation.selectedPage) return;
-
-      let html = '';
-      let baseUrl = '';
-      switch (currentConversation.selectedPage) {
-        case 'focus-group-app':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/focus-group-app/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/focus-group-app/';
-          break;
-        case 'roofer-directory-app':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/roofer-directory-app/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/roofer-directory-app/';
-          break;
-        case 'safari-app':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/safari-app/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/safari-app/';
-          break;
-        case 'tictactoe':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/tictactoe/index.html');
-          baseUrl = '/Users/trevormartin/Projects/experiments/tictactoe/';
-          break;
-        case 'lovable':
-          html = await FileSystem.readAsStringAsync('/Users/trevormartin/Projects/experiments/lovable.htm');
-          baseUrl = '/Users/trevormartin/Projects/experiments/'; // lovable.htm is in the root of experiments
-          break;
-        default:
-          html = '';
-          baseUrl = '';
-      }
-      updateConversationHtml(currentConversation.id, html, baseUrl);
-    };
-
-    loadHtmlContent();
-  }, [currentConversation, updateConversationHtml]);
-
-  useEffect(() => {
-    if (currentConversation) {
-      setMessages(currentConversation.messages.map(msg => `${msg.isUser ? 'You' : 'AI'}: ${msg.text}`));
+      setMessages(
+        currentConversation.messages.map(m => `${m.isUser ? 'You' : 'AI'}: ${m.text}`)
+      );
     } else {
       setMessages([]);
     }
   }, [currentConversation]);
 
   const sendMessage = () => {
-    if (inputMessage.trim() && selectedConversationId) {
-      updateConversationMessages(selectedConversationId, { id: generateUuid(), text: inputMessage, isUser: true });
-      webSocketService.sendMessage(inputMessage);
-      setInputMessage('');
-    }
+    if (!inputMessage.trim() || !selectedConversationId) return;
+    updateConversationMessages(selectedConversationId, {
+      id: generateUuid(),
+      text: inputMessage,
+      isUser: true,
+    });
+    webSocketService.sendMessage(inputMessage);
+    setInputMessage('');
   };
 
   const colorScheme = useColorScheme();
+  const bottomOffset = isWeb ? 0 : TAB_BAR_HEIGHT + insets.bottom;
 
   return (
-    <ThemedView style={styles.container} isGradient={true}>
+    <ThemedView
+      style={[styles.container, !isWeb && { paddingBottom: bottomOffset }]}
+      isGradient
+    >
       <KeyboardAvoidingView
-        style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+        style={styles.keyboardAvoiding}
+        behavior={Platform.select({ ios: 'padding', android: 'position', default: undefined })}
+        keyboardVerticalOffset={bottomOffset}
       >
-        <ScrollView contentContainerStyle={styles.messagesContainer}>
-          {messages.map((msg, index) => {
+        <ScrollView
+          contentContainerStyle={[
+            styles.messagesContainer,
+            { paddingBottom: INPUT_CONTAINER_HEIGHT },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {messages.map((msg, idx) => {
             const isUser = msg.startsWith('You:');
             return (
               <ThemedView
-                key={index}
+                key={idx}
                 style={[
                   styles.messageBubble,
                   isUser ? styles.userMessage : styles.aiMessage,
-                  { backgroundColor: isUser ? Colors[colorScheme ?? 'light'].chatBubbleUser : Colors[colorScheme ?? 'light'].chatBubbleAI },
+                  {
+                    backgroundColor: isUser
+                      ? Colors[colorScheme].chatBubbleUser
+                      : Colors[colorScheme].chatBubbleAI,
+                  },
                 ]}
               >
                 <ThemedText style={styles.messageText} type={isUser ? 'chatUser' : 'chatAI'}>
@@ -152,53 +127,28 @@ export default function HomeScreen() {
             );
           })}
         </ScrollView>
-        <ThemedView style={getInputContainerStyle(colorScheme)}>
+
+        <View style={styles.inputContainerBase}>
           <TextInput
-            ref={inputRef}
-            style={{
-              flex: 1,
-              borderWidth: 1,
-              borderColor: Colors[colorScheme ?? 'light'].icon,
-              borderRadius: 5,
-              padding: 10,
-              marginRight: 10,
-              fontSize: 16,
-              height: 40,
-              backgroundColor: Colors[colorScheme ?? 'light'].background,
-              color: Colors[colorScheme ?? 'light'].text,
-            }}
+            ref={useRef<TextInput>(null)}
+            style={[
+              styles.input,
+              {
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+              },
+            ]}
             value={inputMessage}
-            onChangeText={(text) => {
-              console.log('Input text:', text);
-              setInputMessage(text);
-            }}
-            placeholder="Type your message..."
+            onChangeText={setInputMessage}
+            placeholder="Type your message…"
             placeholderTextColor="gray"
           />
           <TouchableOpacity onPress={sendMessage}>
-            <ThemedView
-              isGradient={true}
-              style={{
-                paddingVertical: 10,
-                paddingHorizontal: 15,
-                borderRadius: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: Colors[colorScheme ?? 'light'].sendButtonBackground,
-              }}
-            >
-              <ThemedText
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                  color: Colors[colorScheme ?? 'light'].selectedText,
-                }}
-              >
-                Send
-              </ThemedText>
+            <ThemedView isGradient style={styles.sendButton}>
+              <ThemedText style={styles.sendButtonText}>Send</ThemedText>
             </ThemedView>
           </TouchableOpacity>
-        </ThemedView>
+        </View>
       </KeyboardAvoidingView>
     </ThemedView>
   );
@@ -207,14 +157,10 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent', // Use gradient background from ThemedView
+    backgroundColor: 'transparent',
   },
-  chatContainer: {
+  keyboardAvoiding: {
     flex: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    backgroundColor: 'transparent', // Use gradient background from ThemedView
   },
   messagesContainer: {
     flexGrow: 1,
@@ -241,16 +187,33 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
   },
-});
-
-const getInputContainerStyle = (colorScheme) => ({
-  flexDirection: 'row',
-  alignItems: 'center',
-  borderTopWidth: 1,
-  paddingTop: 10,
-  paddingHorizontal: 10,
-  minHeight: 60,
-  zIndex: 1,
-  backgroundColor: 'transparent', // Ensure transparent background
-  borderTopColor: Colors[colorScheme ?? 'light'].icon,
+  inputContainerBase: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: INPUT_CONTAINER_HEIGHT,
+    paddingHorizontal: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    backgroundColor: 'transparent',
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginRight: 10,
+    fontSize: 16,
+    height: 40,
+  },
+  sendButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
