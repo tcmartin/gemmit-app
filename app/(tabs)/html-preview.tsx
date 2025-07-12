@@ -17,10 +17,7 @@ export default function HtmlPreviewScreen() {
 
   return (
     <ThemedView style={styles.container} isGradient={true}>
-      <ThemedText type="title" style={styles.title}>HTML Preview</ThemedText>
-      <ThemedView style={styles.previewWrapper}>
         <HtmlPreview htmlContent={htmlContent} localFileBaseUrl={localFileBaseUrl} />
-      </ThemedView>
     </ThemedView>
   );
 }
@@ -29,16 +26,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-  },
-  title: {
-    marginBottom: 20,
-    textAlign: 'center',
-    color: Colors.light.text,
-  },
-  previewWrapper: {
-    flex: 1,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
   },
 });

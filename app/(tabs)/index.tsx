@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#eee',
     paddingTop: 10,
     paddingHorizontal: 10,
-    backgroundColor: 'transparent', // Use gradient background from ThemedView
+    backgroundColor: Colors[colorScheme ?? 'light'].background, // Use gradient background from ThemedView
   },
   input: {
     flex: 1,
