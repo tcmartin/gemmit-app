@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, Button, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -74,10 +75,15 @@ export default function SettingsScreen() {
         />
       </ThemedView>
 
-      <TouchableOpacity onPress={handleSaveSettings}>
-        <ThemedView isGradient={true} style={styles.saveButton}>
+      <TouchableOpacity onPress={handleSaveSettings} style={styles.saveButtonContainer}>
+        <LinearGradient
+          colors={[Colors[colorScheme].gradientStart, Colors[colorScheme].gradientEnd]}
+          style={styles.saveButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
           <ThemedText style={styles.saveButtonText}>Save Settings</ThemedText>
-        </ThemedView>
+        </LinearGradient>
       </TouchableOpacity>
     </ThemedView>
   );
@@ -117,10 +123,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
-  saveButton: {
+  saveButtonContainer: {
     marginTop: 20,
-    padding: 15,
+    width: '80%', // Make it responsive
+    maxWidth: 300, // Max width for larger screens
+    height: 50,
     borderRadius: 10,
+    overflow: 'hidden',
+  },
+  saveButtonGradient: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

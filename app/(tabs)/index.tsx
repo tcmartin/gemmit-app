@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 import { StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
-import { WebView } from 'react-native-webview';
 import { webSocketService } from '../../services/WebSocketService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -9,6 +8,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import * as FileSystem from 'expo-file-system';
 import { useAppContext } from '@/context/AppSettingsContext';
 import { generateUuid } from '@/utils/generateUuid';
+import { HtmlPreview } from '@/components/HtmlPreview'; // Import the new component
 
 export default function HomeScreen() {
   const [messages, setMessages] = useState<string[]>([]);
@@ -170,18 +170,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </ThemedView>
       </KeyboardAvoidingView>
-      <ThemedView style={styles.htmlPreviewContainer}>
-        <ThemedText type="subtitle">HTML Preview</ThemedText>
-        {htmlContent ? (
-          <WebView
-            originWhitelist={['*']}
-            source={{ html: htmlContent, baseUrl: localFileBaseUrl }}
-            style={styles.webView}
-          />
-        ) : (
-          <ThemedText style={styles.noHtmlText}>No HTML content to display yet.</ThemedText>
-        )}
-      </ThemedView>
+      <HtmlPreview htmlContent={htmlContent} localFileBaseUrl={localFileBaseUrl} />
     </ThemedView>
   );
 }
@@ -245,30 +234,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     color: Colors.light.text,
   },
-  htmlPreviewContainer: {
-    flex: 1,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: Colors.light.background, // Use background color for HTML preview
-  },
-  webView: {
-    flex: 1,
-    marginTop: 10,
-    backgroundColor: 'transparent',
-  },
-  noHtmlText: {
-    textAlign: 'center',
-    marginTop: 20,
-  },
   sendButton: {
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.light.tint, // Use tint color for contrast
   },
   sendButtonText: {
-    color: '#fff',
+    color: Colors.light.selectedText, // Use selectedText color for contrast
     fontWeight: 'bold',
     fontSize: 16,
   },
