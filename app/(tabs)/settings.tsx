@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';

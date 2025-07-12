@@ -8,29 +8,26 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import * as FileSystem from 'expo-file-system';
 import { useAppContext } from '@/context/AppSettingsContext';
 import { generateUuid } from '@/utils/generateUuid';
-import { HtmlPreview } from '@/components/HtmlPreview'; // Import the new component
+
 
 export default function HomeScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [htmlContent, setHtmlContent] = useState('');
-  const [localFileBaseUrl, setLocalFileBaseUrl] = useState('');
+  
   const { selectedConversationId, conversations, updateConversationMessages, updateConversationHtml, serverUrl } = useAppContext();
 
   const currentConversation = conversations.find(conv => conv.id === selectedConversationId);
 
   // Use refs to hold the latest values of selectedConversationId and localFileBaseUrl
   const selectedConversationIdRef = useRef(selectedConversationId);
-  const localFileBaseUrlRef = useRef(localFileBaseUrl);
   const updateConversationMessagesRef = useRef(updateConversationMessages);
   const updateConversationHtmlRef = useRef(updateConversationHtml);
 
   useEffect(() => {
     selectedConversationIdRef.current = selectedConversationId;
-    localFileBaseUrlRef.current = localFileBaseUrl;
     updateConversationMessagesRef.current = updateConversationMessages;
     updateConversationHtmlRef.current = updateConversationHtml;
-  }, [selectedConversationId, localFileBaseUrl, updateConversationMessages, updateConversationHtml]);
+  }, [selectedConversationId, updateConversationMessages, updateConversationHtml]);
 
 
   useEffect(() => {
@@ -48,9 +45,8 @@ export default function HomeScreen() {
     webSocketService.setHtmlHandler((html) => {
       const currentConvId = selectedConversationIdRef.current;
       const updateHtml = updateConversationHtmlRef.current;
-      const currentBaseUrl = localFileBaseUrlRef.current;
       if (currentConvId) {
-        updateHtml(currentConvId, html, currentBaseUrl);
+        updateHtml(currentConvId, html, ''); // Removed baseUrl
       }
     });
 
@@ -61,17 +57,18 @@ export default function HomeScreen() {
     };
   }, [serverUrl, selectedConversationId]); // Dependencies are only serverUrl and selectedConversationId
 
+  const inputRef = useRef<TextInput>(null);
+
   useEffect(() => {
     if (currentConversation) {
       setMessages(currentConversation.messages.map(msg => `${msg.isUser ? 'You' : 'AI'}: ${msg.text}`));
-      setHtmlContent(currentConversation.htmlContent);
-      setLocalFileBaseUrl(currentConversation.localFileBaseUrl);
     } else {
       setMessages([]);
-      setHtmlContent('');
-      setLocalFileBaseUrl('');
     }
-  }, [currentConversation]); // This useEffect updates local state based on currentConversation
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [currentConversation, setMessages]);
 
 
   useEffect(() => {
@@ -109,17 +106,13 @@ export default function HomeScreen() {
     };
 
     loadHtmlContent();
-  }, [currentConversation?.selectedPage, currentConversation?.id, updateConversationHtml]);
+  }, [currentConversation, updateConversationHtml]);
 
   useEffect(() => {
     if (currentConversation) {
       setMessages(currentConversation.messages.map(msg => `${msg.isUser ? 'You' : 'AI'}: ${msg.text}`));
-      setHtmlContent(currentConversation.htmlContent);
-      setLocalFileBaseUrl(currentConversation.localFileBaseUrl);
     } else {
       setMessages([]);
-      setHtmlContent('');
-      setLocalFileBaseUrl('');
     }
   }, [currentConversation]);
 
@@ -132,14 +125,13 @@ export default function HomeScreen() {
   };
 
   const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
 
   return (
     <ThemedView style={styles.container} isGradient={true}>
       <KeyboardAvoidingView
         style={styles.chatContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
       >
         <ScrollView contentContainerStyle={styles.messagesContainer}>
           {messages.map((msg, index) => {
@@ -160,26 +152,28 @@ export default function HomeScreen() {
             );
           })}
         </ScrollView>
-        <ThemedView style={[
-          styles.inputContainer,
-          {
-            borderTopColor: Colors[colorScheme ?? 'light'].icon,
-            backgroundColor: 'transparent',
-          },
-        ]}>
+        <ThemedView style={getInputContainerStyle(colorScheme)}>
           <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: Colors[colorScheme ?? 'light'].chatBubbleAI,
-                borderColor: Colors[colorScheme ?? 'light'].tint,
-              },
-            ]}
+            ref={inputRef}
+            style={{
+              flex: 1,
+              borderWidth: 1,
+              borderColor: Colors[colorScheme ?? 'light'].icon,
+              borderRadius: 5,
+              padding: 10,
+              marginRight: 10,
+              fontSize: 16,
+              height: 40,
+              backgroundColor: Colors[colorScheme ?? 'light'].background,
+              color: Colors[colorScheme ?? 'light'].text,
+            }}
             value={inputMessage}
-            onChangeText={setInputMessage}
+            onChangeText={(text) => {
+              console.log('Input text:', text);
+              setInputMessage(text);
+            }}
             placeholder="Type your message..."
-            placeholderTextColor={isDarkMode ? Colors[colorScheme ?? 'light'].icon : Colors[colorScheme ?? 'light'].tabIconDefault}
-            color={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor="gray"
           />
           <TouchableOpacity onPress={sendMessage}>
             <ThemedView
@@ -247,21 +241,16 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    paddingTop: 10,
-    paddingHorizontal: 10,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 20,
-    padding: 10,
-    marginRight: 10,
-    fontSize: 16,
-  },
-  
+});
+
+const getInputContainerStyle = (colorScheme) => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderTopWidth: 1,
+  paddingTop: 10,
+  paddingHorizontal: 10,
+  minHeight: 60,
+  zIndex: 1,
+  backgroundColor: 'transparent', // Ensure transparent background
+  borderTopColor: Colors[colorScheme ?? 'light'].icon,
 });
