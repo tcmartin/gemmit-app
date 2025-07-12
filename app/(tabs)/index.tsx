@@ -235,10 +235,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: Colors[colorScheme ?? 'light'].icon,
     paddingTop: 10,
     paddingHorizontal: 10,
-    backgroundColor: Colors.light.background,
+    backgroundColor: 'transparent',
   },
   input: {
     flex: 1,
