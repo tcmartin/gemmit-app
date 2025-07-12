@@ -148,14 +148,14 @@ export default function HomeScreen() {
             );
           })}
         </ScrollView>
-        <ThemedView style={styles.inputContainer}>
+        <ThemedView style={[styles.inputContainer, { borderTopColor: Colors[colorScheme ?? 'light'].icon, backgroundColor: Colors[colorScheme ?? 'light'].background }]}>
           <TextInput
             style={[
               styles.input,
               {
-                backgroundColor: Colors[colorScheme ?? 'light'].background,
+                backgroundColor: Colors[colorScheme ?? 'light'].chatBubbleAI,
                 color: Colors[colorScheme ?? 'light'].text,
-                borderColor: isDarkMode ? Colors[colorScheme ?? 'light'].tint : Colors[colorScheme ?? 'light'].icon,
+                borderColor: Colors[colorScheme ?? 'light'].tint,
               },
             ]}
             value={inputMessage}
@@ -235,10 +235,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: Colors[colorScheme ?? 'light'].icon,
     paddingTop: 10,
     paddingHorizontal: 10,
-    backgroundColor: 'transparent',
   },
   input: {
     flex: 1,
@@ -248,8 +246,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 10,
     fontSize: 16,
-    backgroundColor: Colors.light.background,
-    color: Colors.light.text,
+    backgroundColor: Colors[colorScheme ?? 'light'].background,
+    color: Colors[colorScheme ?? 'light'].text,
   },
   
 });
