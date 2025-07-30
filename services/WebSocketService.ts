@@ -11,49 +11,65 @@ class WebSocketService {
   }
 
   connect(url: string, conversationId: string) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.close();
+    // Close existing connection if any
+    if (this.ws) {
+      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+        this.ws.close();
+      }
     }
+    
     this.conversationId = conversationId;
-    this.ws = new WebSocket(url);
+    
+    try {
+      console.log('Attempting to connect to:', url);
+      this.ws = new WebSocket(url);
 
-    this.ws.onopen = () => {
-      console.log('WebSocket Connected');
-    };
+      this.ws.onopen = () => {
+        console.log('WebSocket Connected to:', url);
+      };
 
-    this.ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'stream' && message.stream === 'stdout') {
+      this.ws.onmessage = (event) => {
         try {
-          const parsedData = JSON.parse(message.data);
-          if (parsedData.type === 'html') {
-            this.htmlHandler?.(parsedData.content); // Call single handler
+          const message = JSON.parse(event.data);
+          if (message.type === 'stream' && message.stream === 'stdout') {
+            try {
+              const parsedData = JSON.parse(message.data);
+              if (parsedData.type === 'html') {
+                this.htmlHandler?.(parsedData.content);
+              } else {
+                this.messageHandler?.(parsedData);
+              }
+            } catch (e) {
+              // If it's not JSON, treat it as a regular message
+              this.messageHandler?.(message.data);
+            }
           } else {
-            this.messageHandler?.(parsedData); // Call single handler
+            this.messageHandler?.(message);
           }
         } catch (e) {
-          // If it's not JSON, treat it as a regular message
-          this.messageHandler?.(message.data); // Call single handler
+          console.error('Error parsing WebSocket message:', e);
         }
-      } else {
-        this.messageHandler?.(message); // Call single handler
-      }
-    };
+      };
 
-    this.ws.onclose = () => {
-      console.log('WebSocket Disconnected');
-    };
+      this.ws.onclose = (event) => {
+        console.log('WebSocket Disconnected. Code:', event.code, 'Reason:', event.reason);
+      };
 
-    this.ws.onerror = (error) => {
-      console.error('WebSocket Error:', error);
-    };
+      this.ws.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+      };
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+    }
   }
 
   sendMessage(prompt: string) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ prompt, conversationId: this.conversationId }));
+      const message = { prompt, conversationId: this.conversationId };
+      console.log('Sending message:', message);
+      this.ws.send(JSON.stringify(message));
     } else {
-      console.warn('WebSocket not connected.');
+      console.warn('WebSocket not connected. ReadyState:', this.ws?.readyState);
     }
   }
 

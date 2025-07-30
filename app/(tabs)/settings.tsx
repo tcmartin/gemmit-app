@@ -33,12 +33,12 @@ export default function SettingsScreen() {
   ];
 
   const handleSaveSettings = () => {
-    // In a real app, you'd save this setting (e.g., to AsyncStorage or a global state management).
-    // For now, we'll just log it.
+    // Settings are now automatically saved when changed, so this just provides feedback
+    console.log('Settings confirmed:');
     console.log('Selected page:', selectedPage);
     console.log('Server URL:', serverUrl);
     console.log('HTML Preview Base URL:', htmlPreviewBaseUrl);
-    alert(`Settings saved!\nSelected page: ${selectedPage}\nServer URL: ${serverUrl}\nHTML Preview Base URL: ${htmlPreviewBaseUrl}`);
+    alert(`Settings saved and persisted!\n\nSelected page: ${selectedPage}\nServer URL: ${serverUrl}\nHTML Preview Base URL: ${htmlPreviewBaseUrl}\n\nSettings will be remembered across app restarts.`);
   };
 
   return (

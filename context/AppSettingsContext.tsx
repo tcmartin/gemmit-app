@@ -33,12 +33,19 @@ interface AppSettingsContextType {
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
 
+const STORAGE_KEYS = {
+  SELECTED_PAGE: 'selectedPage',
+  SERVER_URL: 'serverUrl',
+  HTML_PREVIEW_BASE_URL: 'htmlPreviewBaseUrl',
+};
+
 export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [selectedPage, setSelectedPage] = useState('default'); // Default selected page for new conversations
   const [serverUrl, setServerUrl] = useState('ws://localhost:8000'); // Default WebSocket server URL
   const [htmlPreviewBaseUrl, setHtmlPreviewBaseUrl] = useState('http://localhost:3000'); // Default HTML preview base URL
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const addConversation = () => {
     const newConversationId = generateUuid();
@@ -84,12 +91,64 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  // Initialize with one conversation on mount
+  // Load settings from AsyncStorage on mount
   useEffect(() => {
-    if (conversations.length === 0) {
+    const loadSettings = async () => {
+      try {
+        const [storedSelectedPage, storedServerUrl, storedHtmlPreviewBaseUrl] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEYS.SELECTED_PAGE),
+          AsyncStorage.getItem(STORAGE_KEYS.SERVER_URL),
+          AsyncStorage.getItem(STORAGE_KEYS.HTML_PREVIEW_BASE_URL),
+        ]);
+
+        if (storedSelectedPage) setSelectedPage(storedSelectedPage);
+        if (storedServerUrl) setServerUrl(storedServerUrl);
+        if (storedHtmlPreviewBaseUrl) setHtmlPreviewBaseUrl(storedHtmlPreviewBaseUrl);
+        
+        setIsLoaded(true);
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        setIsLoaded(true);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  // Initialize with one conversation after settings are loaded
+  useEffect(() => {
+    if (isLoaded && conversations.length === 0) {
       addConversation();
     }
-  }, []);
+  }, [isLoaded]);
+
+  // Save settings to AsyncStorage when they change
+  const setSelectedPageWithPersistence = async (page: string) => {
+    setSelectedPage(page);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SELECTED_PAGE, page);
+    } catch (error) {
+      console.error('Error saving selected page:', error);
+    }
+  };
+
+  const setServerUrlWithPersistence = async (url: string) => {
+    setServerUrl(url);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SERVER_URL, url);
+    } catch (error) {
+      console.error('Error saving server URL:', error);
+    }
+  };
+
+  const setHtmlPreviewBaseUrlWithPersistence = async (url: string) => {
+    setHtmlPreviewBaseUrl(url);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.HTML_PREVIEW_BASE_URL, url);
+    } catch (error) {
+      console.error('Error saving HTML preview base URL:', error);
+    }
+  };
 
   return (
     <AppSettingsContext.Provider
@@ -104,9 +163,9 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         selectConversation,
         updateConversationMessages,
         updateConversationHtml,
-        setSelectedPage,
-        setServerUrl,
-        setHtmlPreviewBaseUrl,
+        setSelectedPage: setSelectedPageWithPersistence,
+        setServerUrl: setServerUrlWithPersistence,
+        setHtmlPreviewBaseUrl: setHtmlPreviewBaseUrlWithPersistence,
       }}
     >
       {children}

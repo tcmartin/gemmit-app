@@ -8,13 +8,13 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { generateUuid } from '@/utils/generateUuid';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { webSocketService } from '../../services/WebSocketService';
@@ -48,7 +48,12 @@ export default function HomeScreen() {
   }, [selectedConversationId, updateConversationMessages, updateConversationHtml]);
 
   useEffect(() => {
-    webSocketService.connect(serverUrl, selectedConversationId || '');
+    // Only connect if we have a valid conversation ID and server URL
+    if (!selectedConversationId || !serverUrl) return;
+
+    console.log('Connecting to WebSocket:', serverUrl, 'for conversation:', selectedConversationId);
+    
+    webSocketService.connect(serverUrl, selectedConversationId);
     webSocketService.setMessageHandler(msg => {
       const id = selectedRef.current;
       if (id) updateMsgsRef.current(id, { id: generateUuid(), text: JSON.stringify(msg), isUser: false });
@@ -57,7 +62,9 @@ export default function HomeScreen() {
       const id = selectedRef.current;
       if (id) updateHtmlRef.current(id, html, '');
     });
+    
     return () => {
+      console.log('Cleaning up WebSocket connection');
       webSocketService.close();
       webSocketService.setMessageHandler(null);
       webSocketService.setHtmlHandler(null);
