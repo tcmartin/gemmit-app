@@ -1,6 +1,15 @@
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Platform, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import {
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback
+} from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -12,7 +21,7 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const { selectedPage, setSelectedPage, serverUrl, setServerUrl, htmlPreviewBaseUrl, setHtmlPreviewBaseUrl, selectedConversationId, updateConversationHtml } = useAppContext();
+  const { selectedPage, setSelectedPage, serverUrl, setServerUrl, htmlPreviewBaseUrl, setHtmlPreviewBaseUrl } = useAppContext();
 
   const pages = [
     { label: 'Default (No HTML)', value: 'default' },
@@ -34,76 +43,94 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView style={styles.container} isGradient={true}>
-      <ThemedText type="title" style={styles.title}>Settings</ThemedText>
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <ThemedText type="title" style={styles.title}>Settings</ThemedText>
 
-      <ThemedView style={styles.settingItem}>
-        <ThemedText type="defaultSemiBold">Select HTML Page:</ThemedText>
-        <Picker
-          selectedValue={selectedPage}
-          onValueChange={(itemValue) => setSelectedPage(itemValue)}
-          style={[
-            styles.picker,
-            {
-              backgroundColor: Colors[colorScheme ?? 'light'].background,
-              color: Colors[colorScheme ?? 'light'].text,
-            },
-          ]}
-          itemStyle={{
-            color: Colors[colorScheme ?? 'light'].text,
-          }}
-        >
-          {pages.map((page) => (
-            <Picker.Item key={page.value} label={page.label} value={page.value} />
-          ))}
-        </Picker>
-      </ThemedView>
+            <ThemedView style={styles.settingItem}>
+              <ThemedText type="defaultSemiBold">Select HTML Page:</ThemedText>
+              <Picker
+                selectedValue={selectedPage}
+                onValueChange={(itemValue) => setSelectedPage(itemValue)}
+                style={[
+                  styles.picker,
+                  {
+                    backgroundColor: Colors[colorScheme ?? 'light'].background,
+                    color: Colors[colorScheme ?? 'light'].text,
+                  },
+                ]}
+                itemStyle={{
+                  color: Colors[colorScheme ?? 'light'].text,
+                }}
+              >
+                {pages.map((page) => (
+                  <Picker.Item key={page.value} label={page.label} value={page.value} />
+                ))}
+              </Picker>
+            </ThemedView>
 
-      <ThemedView style={styles.settingItem}>
-        <ThemedText type="defaultSemiBold">WebSocket Server URL:</ThemedText>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: Colors[colorScheme ?? 'light'].background,
-              color: Colors[colorScheme ?? 'light'].text,
-              borderColor: isDarkMode ? '#555' : '#ccc',
-            },
-          ]}
-          value={serverUrl}
-          onChangeText={setServerUrl}
-          placeholder="e.g., ws://localhost:8000"
-          placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
-        />
-      </ThemedView>
+            <ThemedView style={styles.settingItem}>
+              <ThemedText type="defaultSemiBold">WebSocket Server URL:</ThemedText>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: Colors[colorScheme ?? 'light'].background,
+                    color: Colors[colorScheme ?? 'light'].text,
+                    borderColor: isDarkMode ? '#555' : '#ccc',
+                  },
+                ]}
+                value={serverUrl}
+                onChangeText={setServerUrl}
+                placeholder="e.g., ws://localhost:8000"
+                placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </ThemedView>
 
-      <ThemedView style={styles.settingItem}>
-        <ThemedText type="defaultSemiBold">HTML Preview Base URL:</ThemedText>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: Colors[colorScheme ?? 'light'].background,
-              color: Colors[colorScheme ?? 'light'].text,
-              borderColor: isDarkMode ? '#555' : '#ccc',
-            },
-          ]}
-          value={htmlPreviewBaseUrl}
-          onChangeText={setHtmlPreviewBaseUrl}
-          placeholder="e.g., http://localhost:3000"
-          placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
-        />
-      </ThemedView>
+            <ThemedView style={styles.settingItem}>
+              <ThemedText type="defaultSemiBold">HTML Preview Base URL:</ThemedText>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: Colors[colorScheme ?? 'light'].background,
+                    color: Colors[colorScheme ?? 'light'].text,
+                    borderColor: isDarkMode ? '#555' : '#ccc',
+                  },
+                ]}
+                value={htmlPreviewBaseUrl}
+                onChangeText={setHtmlPreviewBaseUrl}
+                placeholder="e.g., http://localhost:3000"
+                placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </ThemedView>
 
-      <TouchableOpacity onPress={handleSaveSettings} style={styles.saveButtonContainer}>
-        <LinearGradient
-          colors={[Colors[colorScheme ?? 'light'].gradientStart, Colors[colorScheme ?? 'light'].gradientEnd]}
-          style={styles.saveButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <ThemedText style={styles.saveButtonText}>Save Settings</ThemedText>
-        </LinearGradient>
-      </TouchableOpacity>
+            <TouchableOpacity onPress={handleSaveSettings} style={styles.saveButtonContainer}>
+              <LinearGradient
+                colors={[Colors[colorScheme ?? 'light'].gradientStart, Colors[colorScheme ?? 'light'].gradientEnd]}
+                style={styles.saveButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <ThemedText style={styles.saveButtonText}>Save Settings</ThemedText>
+              </LinearGradient>
+            </TouchableOpacity>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -111,12 +138,23 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingBottom: 40, // Extra padding at bottom for better scrolling
   },
   title: {
     marginBottom: 30,
+    marginTop: 20,
   },
   settingItem: {
     width: '100%',
@@ -144,6 +182,7 @@ const styles = StyleSheet.create({
   },
   saveButtonContainer: {
     marginTop: 20,
+    marginBottom: 20,
     ...Platform.select({
       ios: {
         width: '80%',
