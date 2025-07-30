@@ -28,6 +28,7 @@ export default function HomeScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     selectedConversationId,
@@ -63,10 +64,32 @@ export default function HomeScreen() {
       const id = selectedRef.current;
       if (id) updateHtmlRef.current(id, html, '');
     });
-    webSocketService.setConnectionStatusHandler(setConnectionStatus);
+    // Debounced status handler to prevent rapid oscillation
+    webSocketService.setConnectionStatusHandler((status) => {
+      // Clear any pending status update
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+      
+      // For 'connected' status, update immediately
+      if (status === 'connected') {
+        setConnectionStatus(status);
+      } else {
+        // For other statuses, debounce to prevent flickering
+        statusTimeoutRef.current = setTimeout(() => {
+          setConnectionStatus(status);
+        }, 500); // 500ms delay
+      }
+    });
     
     return () => {
       console.log('Cleaning up WebSocket connection');
+      
+      // Clear status timeout
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+      
       webSocketService.close();
       webSocketService.setMessageHandler(null);
       webSocketService.setHtmlHandler(null);
@@ -137,6 +160,14 @@ export default function HomeScreen() {
           <View style={[styles.statusIndicator, { backgroundColor: getConnectionStatusColor() }]} />
           <ThemedText style={styles.statusText}>{getConnectionStatusText()}</ThemedText>
           <ThemedText style={styles.serverText}>{serverUrl}</ThemedText>
+          {(connectionStatus === 'disconnected' || connectionStatus === 'error') && (
+            <TouchableOpacity 
+              onPress={() => webSocketService.reconnect()}
+              style={styles.reconnectButton}
+            >
+              <ThemedText style={styles.reconnectButtonText}>Reconnect</ThemedText>
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView
@@ -234,6 +265,17 @@ const styles = StyleSheet.create({
     fontSize: 10,
     opacity: 0.7,
     flex: 1,
+  },
+  reconnectButton: {
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  reconnectButtonText: {
+    fontSize: 10,
+    color: 'white',
+    fontWeight: 'bold',
   },
   messagesContainer: {
     flexGrow: 1,
