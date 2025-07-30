@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { generateUuid } from '@/utils/generateUuid';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 interface Message {
   id: string;
@@ -19,14 +19,16 @@ interface AppSettingsContextType {
   conversations: Conversation[];
   selectedConversationId: string | null;
   selectedPage: string; // To store the selected page for each conversation
-  serverUrl: string; // New: To store the WebSocket server URL
+  serverUrl: string; // To store the WebSocket server URL
+  htmlPreviewBaseUrl: string; // To store the base URL for HTML previews
   addConversation: () => void;
   removeConversation: (id: string) => void;
   selectConversation: (id: string) => void;
   updateConversationMessages: (conversationId: string, message: Message) => void;
   updateConversationHtml: (conversationId: string, html: string, baseUrl: string) => void;
   setSelectedPage: (page: string) => void; // Keep setSelectedPage for the settings screen
-  setServerUrl: (url: string) => void; // New: To set the WebSocket server URL
+  setServerUrl: (url: string) => void; // To set the WebSocket server URL
+  setHtmlPreviewBaseUrl: (url: string) => void; // To set the HTML preview base URL
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -35,7 +37,8 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [selectedPage, setSelectedPage] = useState('default'); // Default selected page for new conversations
-  const [serverUrl, setServerUrl] = useState('ws://localhost:8000'); // New: Default WebSocket server URL
+  const [serverUrl, setServerUrl] = useState('ws://localhost:8000'); // Default WebSocket server URL
+  const [htmlPreviewBaseUrl, setHtmlPreviewBaseUrl] = useState('http://localhost:3000'); // Default HTML preview base URL
 
   const addConversation = () => {
     const newConversationId = generateUuid();
@@ -95,6 +98,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         selectedConversationId,
         selectedPage,
         serverUrl,
+        htmlPreviewBaseUrl,
         addConversation,
         removeConversation,
         selectConversation,
@@ -102,6 +106,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         updateConversationHtml,
         setSelectedPage,
         setServerUrl,
+        setHtmlPreviewBaseUrl,
       }}
     >
       {children}

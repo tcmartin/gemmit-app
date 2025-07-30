@@ -1,18 +1,18 @@
-import { StyleSheet, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Platform, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { useAppContext } from '@/context/AppSettingsContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const { selectedPage, setSelectedPage, serverUrl, setServerUrl } = useAppContext();
+  const { selectedPage, setSelectedPage, serverUrl, setServerUrl, htmlPreviewBaseUrl, setHtmlPreviewBaseUrl, selectedConversationId, updateConversationHtml } = useAppContext();
 
   const pages = [
     { label: 'Default (No HTML)', value: 'default' },
@@ -27,7 +27,9 @@ export default function SettingsScreen() {
     // In a real app, you'd save this setting (e.g., to AsyncStorage or a global state management).
     // For now, we'll just log it.
     console.log('Selected page:', selectedPage);
-    alert(`Settings saved! Selected page: ${selectedPage}`);
+    console.log('Server URL:', serverUrl);
+    console.log('HTML Preview Base URL:', htmlPreviewBaseUrl);
+    alert(`Settings saved!\nSelected page: ${selectedPage}\nServer URL: ${serverUrl}\nHTML Preview Base URL: ${htmlPreviewBaseUrl}`);
   };
 
   return (
@@ -70,6 +72,24 @@ export default function SettingsScreen() {
           value={serverUrl}
           onChangeText={setServerUrl}
           placeholder="e.g., ws://localhost:8000"
+          placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
+        />
+      </ThemedView>
+
+      <ThemedView style={styles.settingItem}>
+        <ThemedText type="defaultSemiBold">HTML Preview Base URL:</ThemedText>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: Colors[colorScheme ?? 'light'].background,
+              color: Colors[colorScheme ?? 'light'].text,
+              borderColor: isDarkMode ? '#555' : '#ccc',
+            },
+          ]}
+          value={htmlPreviewBaseUrl}
+          onChangeText={setHtmlPreviewBaseUrl}
+          placeholder="e.g., http://localhost:3000"
           placeholderTextColor={isDarkMode ? '#bbb' : '#999'}
         />
       </ThemedView>
