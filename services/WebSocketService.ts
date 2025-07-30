@@ -3,14 +3,24 @@ import { generateUuid } from '@/utils/generateUuid';
 class WebSocketService {
   private ws: WebSocket | null = null;
   private conversationId: string;
-  private messageHandler: ((message: any) => void) | null = null; // Change to single handler
-  private htmlHandler: ((html: string) => void) | null = null; // Change to single handler
+  private messageHandler: ((message: any) => void) | null = null;
+  private htmlHandler: ((html: string) => void) | null = null;
+  private connectionStatusHandler: ((status: 'connecting' | 'connected' | 'disconnected' | 'error') => void) | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 3;
+  private reconnectDelay = 1000; // 1 second
 
   constructor() {
     this.conversationId = generateUuid();
   }
 
   connect(url: string, conversationId: string) {
+    // Reset reconnect attempts for new connection
+    this.reconnectAttempts = 0;
+    this._connect(url, conversationId);
+  }
+
+  private _connect(url: string, conversationId: string) {
     // Close existing connection if any
     if (this.ws) {
       if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
@@ -21,16 +31,32 @@ class WebSocketService {
     this.conversationId = conversationId;
     
     try {
-      console.log('Attempting to connect to:', url);
+      console.log(`Attempting to connect to: ${url} (attempt ${this.reconnectAttempts + 1})`);
+      this.connectionStatusHandler?.('connecting');
+      
       this.ws = new WebSocket(url);
 
+      // Set a connection timeout
+      const connectionTimeout = setTimeout(() => {
+        if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
+          console.log('Connection timeout, closing...');
+          this.ws.close();
+          this.connectionStatusHandler?.('error');
+        }
+      }, 10000); // 10 second timeout
+
       this.ws.onopen = () => {
+        clearTimeout(connectionTimeout);
         console.log('WebSocket Connected to:', url);
+        this.reconnectAttempts = 0; // Reset on successful connection
+        this.connectionStatusHandler?.('connected');
       };
 
       this.ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
+          console.log('Received message:', message);
+          
           if (message.type === 'stream' && message.stream === 'stdout') {
             try {
               const parsedData = JSON.parse(message.data);
@@ -48,18 +74,35 @@ class WebSocketService {
           }
         } catch (e) {
           console.error('Error parsing WebSocket message:', e);
+          // Still call the message handler with raw data
+          this.messageHandler?.(event.data);
         }
       };
 
       this.ws.onclose = (event) => {
+        clearTimeout(connectionTimeout);
         console.log('WebSocket Disconnected. Code:', event.code, 'Reason:', event.reason);
+        this.connectionStatusHandler?.('disconnected');
+        
+        // Attempt to reconnect if it wasn't a manual close
+        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.reconnectAttempts++;
+          console.log(`Attempting to reconnect in ${this.reconnectDelay}ms...`);
+          setTimeout(() => {
+            this._connect(url, conversationId);
+          }, this.reconnectDelay);
+          this.reconnectDelay *= 2; // Exponential backoff
+        }
       };
 
       this.ws.onerror = (error) => {
+        clearTimeout(connectionTimeout);
         console.error('WebSocket Error:', error);
+        this.connectionStatusHandler?.('error');
       };
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
+      this.connectionStatusHandler?.('error');
     }
   }
 
@@ -73,18 +116,29 @@ class WebSocketService {
     }
   }
 
-  // Change to set handler
   setMessageHandler(handler: ((message: any) => void) | null) {
     this.messageHandler = handler;
   }
 
-  // Change to set handler
   setHtmlHandler(handler: ((html: string) => void) | null) {
     this.htmlHandler = handler;
   }
 
+  setConnectionStatusHandler(handler: ((status: 'connecting' | 'connected' | 'disconnected' | 'error') => void) | null) {
+    this.connectionStatusHandler = handler;
+  }
+
+  getConnectionState(): number | undefined {
+    return this.ws?.readyState;
+  }
+
+  isConnected(): boolean {
+    return this.ws?.readyState === WebSocket.OPEN;
+  }
+
   close() {
-    this.ws?.close();
+    this.reconnectAttempts = this.maxReconnectAttempts; // Prevent reconnection
+    this.ws?.close(1000, 'Manual close'); // Normal closure
   }
 }
 

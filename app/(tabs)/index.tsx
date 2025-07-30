@@ -27,6 +27,7 @@ export default function HomeScreen() {
   const isWeb = Platform.OS === 'web';
   const [messages, setMessages] = useState<string[]>([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
   const {
     selectedConversationId,
@@ -62,12 +63,14 @@ export default function HomeScreen() {
       const id = selectedRef.current;
       if (id) updateHtmlRef.current(id, html, '');
     });
+    webSocketService.setConnectionStatusHandler(setConnectionStatus);
     
     return () => {
       console.log('Cleaning up WebSocket connection');
       webSocketService.close();
       webSocketService.setMessageHandler(null);
       webSocketService.setHtmlHandler(null);
+      webSocketService.setConnectionStatusHandler(null);
     };
   }, [serverUrl, selectedConversationId]);
 
@@ -83,6 +86,12 @@ export default function HomeScreen() {
 
   const sendMessage = () => {
     if (!inputMessage.trim() || !selectedConversationId) return;
+    
+    if (!webSocketService.isConnected()) {
+      alert('WebSocket is not connected. Please check your server URL in settings.');
+      return;
+    }
+    
     updateConversationMessages(selectedConversationId, {
       id: generateUuid(),
       text: inputMessage,
@@ -90,6 +99,24 @@ export default function HomeScreen() {
     });
     webSocketService.sendMessage(inputMessage);
     setInputMessage('');
+  };
+
+  const getConnectionStatusColor = () => {
+    switch (connectionStatus) {
+      case 'connected': return '#4CAF50';
+      case 'connecting': return '#FF9800';
+      case 'error': return '#F44336';
+      default: return '#9E9E9E';
+    }
+  };
+
+  const getConnectionStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected': return 'Connected';
+      case 'connecting': return 'Connecting...';
+      case 'error': return 'Connection Error';
+      default: return 'Disconnected';
+    }
   };
 
   const colorScheme = useColorScheme();
@@ -105,6 +132,13 @@ export default function HomeScreen() {
         behavior={Platform.select({ ios: 'padding', android: 'position', default: undefined })}
         keyboardVerticalOffset={bottomOffset}
       >
+        {/* Connection Status Bar */}
+        <View style={styles.statusBar}>
+          <View style={[styles.statusIndicator, { backgroundColor: getConnectionStatusColor() }]} />
+          <ThemedText style={styles.statusText}>{getConnectionStatusText()}</ThemedText>
+          <ThemedText style={styles.serverText}>{serverUrl}</ThemedText>
+        </View>
+
         <ScrollView
           contentContainerStyle={[
             styles.messagesContainer,
@@ -147,12 +181,19 @@ export default function HomeScreen() {
             ]}
             value={inputMessage}
             onChangeText={setInputMessage}
-            placeholder="Type your message…"
+            placeholder={connectionStatus === 'connected' ? "Type your message…" : "Check connection..."}
             placeholderTextColor="gray"
+            editable={connectionStatus === 'connected'}
           />
-          <TouchableOpacity onPress={sendMessage}>
-            <ThemedView isGradient style={styles.sendButton}>
-              <ThemedText style={styles.sendButtonText}>Send</ThemedText>
+          <TouchableOpacity 
+            onPress={sendMessage}
+            disabled={connectionStatus !== 'connected'}
+            style={[styles.sendButtonContainer, connectionStatus !== 'connected' && styles.sendButtonDisabled]}
+          >
+            <ThemedView isGradient={connectionStatus === 'connected'} style={styles.sendButton}>
+              <ThemedText style={[styles.sendButtonText, connectionStatus !== 'connected' && styles.sendButtonTextDisabled]}>
+                Send
+              </ThemedText>
             </ThemedView>
           </TouchableOpacity>
         </View>
@@ -167,6 +208,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   keyboardAvoiding: {
+    flex: 1,
+  },
+  statusBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  serverText: {
+    fontSize: 10,
+    opacity: 0.7,
     flex: 1,
   },
   messagesContainer: {
@@ -212,15 +278,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: 40,
   },
+  sendButtonContainer: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
   sendButton: {
     paddingVertical: 10,
     paddingHorizontal: 15,
-    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
   },
   sendButtonText: {
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  sendButtonTextDisabled: {
+    color: '#999',
   },
 });
